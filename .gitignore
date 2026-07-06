@@ -1,0 +1,48 @@
+# Local environment and secrets
+.env
+.env.*.local
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Frontend
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Runtime data
+instance/
+uploads/
+logs/
+*.db
+*.sqlite
+*.sqlite3
+
+# Model weights and training artifacts
+models/weights/
+models/classifiers/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# Large local datasets
+data/
+datasets/
+sample_data/private/
+
+# IDE and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
