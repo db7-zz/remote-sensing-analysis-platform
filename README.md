@@ -7,9 +7,9 @@
 
 ## 当前状态
 
-- 当前阶段：阶段 0 已完成，准备建立 Vue 3 与 Flask 最小闭环。
-- 已完成：仓库安全边界、Python 3.11 环境定义、配置模板和项目定位说明。
-- 尚未实现：Web 页面、后端 API、数据库和模型推理。
+- 当前阶段：阶段 1 已完成，准备接入 SQLite 与任务管理。
+- 已完成：仓库安全边界、Python 3.11 环境、Flask 健康检查、Vue 3 Dashboard、开发代理与三态服务状态展示。
+- 尚未实现：任务数据库、图片上传、分析任务页面和模型推理。
 
 所有能力会按实际完成状态标记为：
 
@@ -32,7 +32,32 @@
 - Node.js 24 与 npm 11（前端将在阶段 1 初始化）。
 - Git 2.x。
 
-当前阶段尚未安装 Flask、Vue 或模型依赖。依赖会随对应功能接入并记录，避免在项目初期引入无法解释或暂时不用的软件包。
+当前阶段只安装了 Flask 与 Vue 最小闭环所需依赖，尚未安装数据库或模型依赖。后续依赖会随对应功能接入并记录，避免引入暂时不用的软件包。
+
+## 本地启动
+
+创建并准备后端环境：
+
+```powershell
+conda env create -f environment.yml
+conda run -n rs-platform python -m pip install -r backend\requirements.txt
+```
+
+启动 Flask API：
+
+```powershell
+conda run -n rs-platform python backend\run.py
+```
+
+在另一个终端安装并启动前端：
+
+```powershell
+Set-Location frontend
+npm.cmd install
+npm.cmd run dev
+```
+
+打开 `http://127.0.0.1:5173`。Dashboard 应显示“后端服务正常”；健康检查接口位于 `http://127.0.0.1:5000/api/v1/health`。
 
 ## 安全与仓库规则
 

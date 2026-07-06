@@ -17,11 +17,14 @@ node_modules/
 dist/
 .vite/
 coverage/
+*.tsbuildinfo
+frontend/src/**/*.js
 
 # Runtime data
 instance/
 uploads/
 logs/
+*.log
 *.db
 *.sqlite
 *.sqlite3
@@ -45,4 +48,3 @@ sample_data/private/
 .DS_Store
 Thumbs.db
 desktop.ini
-
