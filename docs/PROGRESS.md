@@ -8,7 +8,7 @@
 |---|---|---|
 | 阶段 0：环境与 Git | completed | `e060bef` |
 | 阶段 1：Vue 3 与 Flask 最小闭环 | completed | `7bcb76a` |
-| 阶段 2：SQLite 与任务管理 | not started | — |
+| 阶段 2：SQLite 与任务管理 | completed | 本阶段提交 |
 
 ## 已实现功能
 
@@ -29,6 +29,16 @@
 - Dashboard 支持后端健康检查的加载、成功和错误状态。
 - Vite 将 `/api` 代理至本地 Flask 服务。
 - 四个未来分析模块均标记为 `planned`，没有把未实现能力包装为已完成功能。
+
+### 阶段 2
+
+- 接入 Flask-SQLAlchemy、Flask-Migrate、Alembic 与 pytest。
+- 建立 `analysis_tasks` 表、UUID 主键、任务类型约束和任务状态约束。
+- 使用 SQLite 保存任务，并通过迁移版本 `20260706_0001` 管理表结构。
+- 实现任务创建、分页列表、筛选、详情和单任务软删除 API。
+- 建立 `pending → running → completed/failed` 状态转换规则；当前公共 API 不允许任意修改状态。
+- 实现创建任务、历史任务和任务详情页面。
+- 新建任务只保存为 `pending`，没有调用或模拟模型推理。
 
 ## 本次已验证命令与结果
 
@@ -63,14 +73,35 @@ npm.cmd run build
 
 结果：通过，运行中的服务返回 `healthy`。
 
+### 阶段 2 后端测试
+
+在 `backend/` 目录执行：
+
+```powershell
+python -m pytest -q
+```
+
+结果：`5 passed`。覆盖健康检查、创建/列表/详情、非法任务类型、软删除和状态转换规则。
+
+### 数据库迁移一致性
+
+```powershell
+python -m flask --app run.py db upgrade
+python -m flask --app run.py db check
+```
+
+结果：数据库升级至 `20260706_0001 (head)`，`No new upgrade operations detected.`。
+
+### 浏览器任务闭环
+
+结果：通过创建任务、详情展示、历史查询、软删除和空状态验证；浏览器控制台无错误。
+
 ## 当前未实现
 
-- SQLite、MySQL、SQLAlchemy 和数据库迁移。
-- 任务创建、任务状态、任务详情和历史记录。
+- MySQL 连接与 SQLite 到 MySQL 的兼容验证。
 - 图片上传、校验、文件元数据和结果文件管理。
 - YOLO、DINOv2、道路分割及任何真实模型推理。
 - 变化检测 baseline。
 - Leaflet 地图和结果图层。
 - Redis、Celery、Docker 和正式部署。
 - 登录、权限和多用户能力。
-

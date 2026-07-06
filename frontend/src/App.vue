@@ -14,6 +14,8 @@ import { DataAnalysis, InfoFilled } from '@element-plus/icons-vue'
       </RouterLink>
       <nav class="nav-links" aria-label="主导航">
         <RouterLink to="/">平台概览</RouterLink>
+        <RouterLink to="/analysis">创建任务</RouterLink>
+        <RouterLink to="/tasks">历史任务</RouterLink>
         <RouterLink to="/about"><el-icon><InfoFilled /></el-icon> 项目说明</RouterLink>
       </nav>
     </header>
@@ -25,4 +27,3 @@ import { DataAnalysis, InfoFilled } from '@element-plus/icons-vue'
     </footer>
   </div>
 </template>
-

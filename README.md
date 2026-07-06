@@ -7,9 +7,9 @@
 
 ## 当前开发状态
 
-- 当前阶段：阶段 1 已完成，准备接入 SQLite 与任务管理。
-- 已完成：仓库安全边界、Python 3.11 环境、Flask 健康检查、Vue 3 Dashboard、开发代理与三态服务状态展示。
-- 尚未实现：任务数据库、图片上传、分析任务页面和模型推理。
+- 当前阶段：阶段 2 已完成，准备实现安全图片上传与文件管理。
+- 已完成：仓库安全边界、Vue 3 与 Flask 闭环、SQLite 任务数据库、数据库迁移、任务 CRUD、历史任务和任务详情页面。
+- 尚未实现：图片上传、文件元数据、模型推理和分析结果展示。
 
 当前架构、阶段验证与交接信息见：
 
@@ -48,6 +48,9 @@
 ```powershell
 conda env create -f environment.yml
 conda run -n rs-platform python -m pip install -r backend\requirements.txt
+Set-Location backend
+conda run -n rs-platform python -m flask --app run.py db upgrade
+Set-Location ..
 ```
 
 启动 Flask API：
@@ -65,6 +68,13 @@ npm.cmd run dev
 ```
 
 打开 `http://127.0.0.1:5173`。Dashboard 应显示“后端服务正常”；健康检查接口位于 `http://127.0.0.1:5000/api/v1/health`。
+
+任务管理页面：
+
+- 创建任务：`http://127.0.0.1:5173/analysis`
+- 历史任务：`http://127.0.0.1:5173/tasks`
+
+阶段 2 创建的任务只会保存为 `pending`，不会伪装成已经执行模型推理。
 
 ## 安全与仓库规则
 

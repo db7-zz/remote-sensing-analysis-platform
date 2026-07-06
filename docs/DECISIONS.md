@@ -41,7 +41,7 @@
 
 ## 先 SQLite，后 MySQL
 
-**状态：建议用于阶段 2，尚未实现。**
+**状态：SQLite 已在阶段 2 采用；MySQL 尚未接入。**
 
 原因：
 
@@ -51,6 +51,8 @@
 - MySQL 应在任务模型稳定后用于验证连接配置、字符集、JSON、索引和迁移兼容性。
 
 切换时需要重点验证 UUID 表示、UTC 时间、JSON 字段、布尔值、外键和 `utf8mb4` 字符集。
+
+阶段 2 使用 Flask-SQLAlchemy 隔离业务层与具体连接，并使用 Flask-Migrate/Alembic 记录结构演进。当前数据库 URI 为 `sqlite:///remote_sensing.db`，文件位于 Flask instance 目录。
 
 ## 当前不引入 Redis 与 Celery
 
@@ -78,4 +80,3 @@
 **状态：明确暂缓。**
 
 当前规模使用单个 Vue 前端和单个 Flask 后端即可清晰表达系统边界。模型适配器可以先在后端进程内保持模块化；只有在独立扩缩容、故障隔离或多模型资源调度成为真实需求时，再考虑拆分服务。
-

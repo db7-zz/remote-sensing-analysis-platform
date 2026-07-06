@@ -1,6 +1,6 @@
 # 当前系统架构
 
-本文只描述阶段 0、阶段 1 已经存在并验证的代码，不把后续规划描述为已实现功能。
+本文只描述阶段 0 至阶段 2 已经存在并验证的代码，不把后续规划描述为已实现功能。
 
 ## 组件职责
 
@@ -35,6 +35,15 @@
 - 当前唯一业务 API 是 `GET /api/v1/health`。
 - `backend/app/utils/responses.py` 生成统一的成功响应结构。
 
+### 任务服务与数据层
+
+- `backend/app/api/tasks.py` 将任务创建、列表、详情和删除暴露为 REST API。
+- `backend/app/services/task_service.py` 负责输入校验、查询、软删除和状态转换规则。
+- `backend/app/models/analysis_task.py` 定义 `analysis_tasks` ORM 模型。
+- `backend/app/extensions.py` 管理 SQLAlchemy 与 Flask-Migrate 扩展。
+- SQLite 数据库位于已忽略的 `instance/remote_sensing.db`。
+- `backend/migrations/` 保存可提交的数据库结构演进记录。
+
 ## 当前请求链路
 
 ```text
@@ -65,6 +74,16 @@ health_check() 返回统一 JSON 响应
 Vue 将页面状态更新为 success 或 error
 ```
 
+任务管理请求沿用同一 HTTP 链路，在 Flask 内部继续经过：
+
+```text
+tasks API Blueprint
+  → task_service 业务校验与状态规则
+  → AnalysisTask ORM
+  → SQLAlchemy
+  → SQLite
+```
+
 ## 当前入口与地址
 
 | 项目 | 实际值 |
@@ -79,8 +98,12 @@ Vue 将页面状态更新为 success 或 error
 | Flask 默认地址 | `http://127.0.0.1:5000` |
 | 健康检查 API | `GET /api/v1/health` |
 | 完整健康检查地址 | `http://127.0.0.1:5000/api/v1/health` |
+| 任务 API | `POST/GET /api/v1/tasks` |
+| 任务详情与删除 | `GET/DELETE /api/v1/tasks/{id}` |
+| 创建任务页 | `http://127.0.0.1:5173/analysis` |
+| 历史任务页 | `http://127.0.0.1:5173/tasks` |
+| SQLite 迁移 | `backend/migrations/` |
 
 ## 当前边界
 
-当前架构只证明 Vue 与 Flask 的 HTTP 闭环已经建立。数据库、图片上传、分析任务、模型推理、地图和部署均尚未实现。
-
+当前架构已经证明 Vue、Flask、任务服务与 SQLite 的持久化闭环。图片上传、模型推理、分析结果、地图和部署仍未实现。
