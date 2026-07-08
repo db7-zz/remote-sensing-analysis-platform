@@ -5,6 +5,7 @@ from sqlalchemy import select
 
 from app.extensions import db
 from app.models.analysis_task import AnalysisTask, TASK_STATUSES, TASK_TYPES, utc_now
+from app.models.uploaded_file import TaskInputFile, UploadedFile
 
 
 ALLOWED_TRANSITIONS = {
@@ -47,12 +48,44 @@ def create_task(payload: Any) -> AnalysisTask:
     if not isinstance(parameters, dict):
         raise TaskValidationError("parameters 必须是 JSON 对象")
 
+    input_file_ids = payload.get("input_file_ids", [])
+    if not isinstance(input_file_ids, list) or not all(isinstance(item, str) for item in input_file_ids):
+        raise TaskValidationError("input_file_ids 必须是文件 ID 字符串数组")
+    if len(input_file_ids) > 2:
+        raise TaskValidationError("一个任务最多关联两个输入文件")
+    if len(input_file_ids) != len(set(input_file_ids)):
+        raise TaskValidationError("input_file_ids 不能包含重复文件")
+
+    files_by_id: dict[str, UploadedFile] = {}
+    if input_file_ids:
+        uploaded_files = db.session.scalars(
+            select(UploadedFile).where(
+                UploadedFile.id.in_(input_file_ids),
+                UploadedFile.deleted_at.is_(None),
+            )
+        ).all()
+        files_by_id = {uploaded_file.id: uploaded_file for uploaded_file in uploaded_files}
+        if len(files_by_id) != len(input_file_ids):
+            raise TaskValidationError("一个或多个输入文件不存在")
+
     task = AnalysisTask(
         name=name.strip(),
         task_type=task_type,
         model_key=model_key,
         parameters_json=parameters,
     )
+    for position, file_id in enumerate(input_file_ids):
+        if task_type == "change_detection" and len(input_file_ids) == 2:
+            role = "before" if position == 0 else "after"
+        else:
+            role = "primary" if position == 0 else "secondary"
+        task.input_links.append(
+            TaskInputFile(
+                file=files_by_id[file_id],
+                role=role,
+                position=position,
+            )
+        )
     db.session.add(task)
     db.session.commit()
     return task
@@ -124,4 +157,3 @@ def transition_task(
     task.status = new_status
     db.session.commit()
     return task
-

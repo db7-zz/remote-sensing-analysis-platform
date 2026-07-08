@@ -49,6 +49,14 @@ class AnalysisTask(db.Model):
     duration_ms = db.Column(db.BigInteger, nullable=True)
     deleted_at = db.Column(db.DateTime(timezone=True), nullable=True, index=True)
 
+    input_links = db.relationship(
+        "TaskInputFile",
+        back_populates="task",
+        cascade="all, delete-orphan",
+        order_by="TaskInputFile.position",
+        lazy="selectin",
+    )
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -64,5 +72,5 @@ class AnalysisTask(db.Model):
             "started_at": isoformat_utc(self.started_at),
             "completed_at": isoformat_utc(self.completed_at),
             "duration_ms": self.duration_ms,
+            "input_files": [link.to_dict() for link in self.input_links],
         }
-

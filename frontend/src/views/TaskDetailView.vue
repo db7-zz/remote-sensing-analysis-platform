@@ -66,6 +66,19 @@ onMounted(loadTask)
           <el-descriptions-item label="完成时间">{{ formatDate(task.completed_at) }}</el-descriptions-item>
         </el-descriptions>
 
+        <div v-if="task.input_files.length" class="input-files-block">
+          <h3>输入图片</h3>
+          <div class="input-image-grid">
+            <figure v-for="item in task.input_files" :key="item.file.id">
+              <img :src="item.file.content_url" :alt="item.file.original_name" />
+              <figcaption>
+                <strong>{{ item.file.original_name }}</strong>
+                <span>{{ item.file.width }} × {{ item.file.height }} · {{ item.role }}</span>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+
         <div class="parameters-block">
           <h3>任务参数</h3>
           <pre>{{ JSON.stringify(task.parameters, null, 2) }}</pre>
@@ -74,7 +87,7 @@ onMounted(loadTask)
         <el-alert
           v-if="task.status === 'pending'"
           title="等待后续推理模块处理"
-          description="阶段 2 只持久化任务记录。模型接入后，推理服务会把任务从 pending 更新为 running，再进入 completed 或 failed。"
+          description="图片已经安全保存并关联任务。模型接入后，推理服务会把任务从 pending 更新为 running，再进入 completed 或 failed。"
           type="info"
           :closable="false"
           show-icon
@@ -83,4 +96,3 @@ onMounted(loadTask)
     </div>
   </section>
 </template>
-

@@ -1,3 +1,7 @@
+from io import BytesIO
+
+from PIL import Image
+
 from app.services.task_service import TaskTransitionError, transition_task
 
 
@@ -72,3 +76,22 @@ def test_task_status_transition_rules(app, client):
             pass
         else:
             raise AssertionError("完成态任务不应允许重新进入 running")
+
+
+def test_create_task_with_uploaded_input(client):
+    image_buffer = BytesIO()
+    Image.new("RGB", (10, 8), color=(20, 80, 120)).save(image_buffer, format="PNG")
+    upload_response = client.post(
+        "/api/v1/files",
+        data={"file": (BytesIO(image_buffer.getvalue()), "input.png", "image/png")},
+        content_type="multipart/form-data",
+    )
+    file_id = upload_response.get_json()["data"]["id"]
+
+    task_response = create_task(client, input_file_ids=[file_id])
+
+    assert task_response.status_code == 201
+    input_files = task_response.get_json()["data"]["input_files"]
+    assert len(input_files) == 1
+    assert input_files[0]["role"] == "primary"
+    assert input_files[0]["file"]["id"] == file_id

@@ -12,7 +12,11 @@ class TestConfig(Config):
 
 
 @pytest.fixture()
-def app():
+def app(tmp_path):
+    TestConfig.UPLOAD_ROOT = str(tmp_path / "uploads")
+    TestConfig.MAX_UPLOAD_MB = 1
+    TestConfig.MAX_CONTENT_LENGTH = 1024 * 1024
+    TestConfig.MAX_IMAGE_PIXELS = 1_000_000
     application = create_app(TestConfig)
     with application.app_context():
         db.create_all()

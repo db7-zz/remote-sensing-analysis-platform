@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import type { UploadedFileMetadata } from './files'
 import type { ApiResponse } from './system'
 
 export type TaskType =
@@ -23,6 +24,11 @@ export interface AnalysisTask {
   started_at: string | null
   completed_at: string | null
   duration_ms: number | null
+  input_files: Array<{
+    role: string
+    position: number
+    file: UploadedFileMetadata
+  }>
 }
 
 export interface TaskListData {
@@ -38,6 +44,7 @@ export interface CreateTaskPayload {
   task_type: TaskType
   model_key?: string
   parameters?: Record<string, unknown>
+  input_file_ids?: string[]
 }
 
 export interface TaskListParams {
@@ -65,4 +72,3 @@ export async function getTask(taskId: string): Promise<AnalysisTask> {
 export async function deleteTask(taskId: string): Promise<void> {
   await apiClient.delete(`/tasks/${taskId}`)
 }
-

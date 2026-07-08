@@ -1,6 +1,6 @@
 # 当前系统架构
 
-本文只描述阶段 0 至阶段 2 已经存在并验证的代码，不把后续规划描述为已实现功能。
+本文只描述阶段 0 至阶段 3 已经存在并验证的代码，不把后续规划描述为已实现功能。
 
 ## 组件职责
 
@@ -32,7 +32,7 @@
 - `backend/app/__init__.py` 是应用工厂，负责加载配置、配置 CORS、注册 Blueprint。
 - `backend/app/config.py` 从根目录 `.env` 读取配置，并提供本地开发默认值。
 - 后端默认监听 `127.0.0.1:5000`。
-- 当前唯一业务 API 是 `GET /api/v1/health`。
+- 当前 API 包括健康检查、任务管理、图片上传和受控图片读取。
 - `backend/app/utils/responses.py` 生成统一的成功响应结构。
 
 ### 任务服务与数据层
@@ -43,6 +43,15 @@
 - `backend/app/extensions.py` 管理 SQLAlchemy 与 Flask-Migrate 扩展。
 - SQLite 数据库位于已忽略的 `instance/remote_sensing.db`。
 - `backend/migrations/` 保存可提交的数据库结构演进记录。
+
+### 文件存储层
+
+- `backend/app/api/files.py` 提供图片上传和受控内容读取 API。
+- `backend/app/services/storage_service.py` 负责文件名清理、安全校验、SHA-256、落盘和路径解析。
+- `uploaded_files` 表只保存文件元数据和相对路径，不保存图片二进制。
+- `task_input_files` 表关联任务和输入文件，并保存输入顺序与角色。
+- 图片本体保存在被 Git 忽略的 `uploads/original/`。
+- 当前只允许 JPEG、PNG；GeoTIFF 与坐标系处理尚未实现。
 
 ## 当前请求链路
 
@@ -84,6 +93,18 @@ tasks API Blueprint
   → SQLite
 ```
 
+图片上传链路：
+
+```text
+浏览器 multipart/form-data
+  → Flask 请求体上限
+  → 扩展名与 MIME 校验
+  → Pillow 真实解码与像素检查
+  → UUID 文件名写入 uploads/original
+  → uploaded_files 元数据入库
+  → 返回 file_id 与受控 content_url
+```
+
 ## 当前入口与地址
 
 | 项目 | 实际值 |
@@ -100,10 +121,12 @@ tasks API Blueprint
 | 完整健康检查地址 | `http://127.0.0.1:5000/api/v1/health` |
 | 任务 API | `POST/GET /api/v1/tasks` |
 | 任务详情与删除 | `GET/DELETE /api/v1/tasks/{id}` |
+| 图片上传 | `POST /api/v1/files` |
+| 图片内容 | `GET /api/v1/files/{id}/content` |
 | 创建任务页 | `http://127.0.0.1:5173/analysis` |
 | 历史任务页 | `http://127.0.0.1:5173/tasks` |
 | SQLite 迁移 | `backend/migrations/` |
 
 ## 当前边界
 
-当前架构已经证明 Vue、Flask、任务服务与 SQLite 的持久化闭环。图片上传、模型推理、分析结果、地图和部署仍未实现。
+当前架构已经证明 Vue、Flask、SQLite、文件存储和任务输入关联闭环。模型推理、分析结果、地图和部署仍未实现。

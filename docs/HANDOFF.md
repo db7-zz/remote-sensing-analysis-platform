@@ -2,11 +2,11 @@
 
 ## Git 状态
 
-- 当前已提交基线：`c9083c7 docs: synchronize architecture progress and handoff status`
-- 阶段 2：已实现并验证，包含在本阶段提交中
+- 当前已提交基线：`529e5a6 feat: add SQLite-backed analysis task management`
+- 阶段 3：已实现并验证，尚未提交
 - 当前分支：`main`
 - 远程跟踪分支：`origin/main`
-- 阶段 2 提交包含任务管理代码、迁移、测试、页面和文档改动。
+- 当前工作区包含安全上传、文件关联、迁移、测试、页面和文档改动。
 
 ## 当前运行命令
 
@@ -69,6 +69,8 @@ npm.cmd run build
 | `frontend/src/api/client.ts` | Axios 基础配置 |
 | `frontend/src/api/system.ts` | 健康检查类型与请求函数 |
 | `frontend/src/api/tasks.ts` | 任务类型与 API 请求函数 |
+| `frontend/src/api/files.ts` | 图片上传 API 与文件元数据类型 |
+| `frontend/src/components/ImageUploader.vue` | 图片选择、预览和上传进度 |
 | `frontend/src/views/AnalysisView.vue` | 创建任务页面 |
 | `frontend/src/views/HistoryView.vue` | 历史任务页面 |
 | `frontend/src/views/TaskDetailView.vue` | 任务详情页面 |
@@ -78,8 +80,11 @@ npm.cmd run build
 | `backend/app/config.py` | 后端环境配置 |
 | `backend/app/api/health.py` | 健康检查接口 |
 | `backend/app/api/tasks.py` | 任务 REST API |
+| `backend/app/api/files.py` | 文件上传与读取 REST API |
 | `backend/app/models/analysis_task.py` | 任务 ORM 模型 |
 | `backend/app/services/task_service.py` | 任务业务规则与状态机 |
+| `backend/app/services/storage_service.py` | 图片验证、存储和安全路径解析 |
+| `backend/app/models/uploaded_file.py` | 文件元数据与任务输入关联模型 |
 | `backend/migrations/` | 数据库迁移历史 |
 | `backend/app/utils/responses.py` | 统一成功响应 |
 | `.env.example` | 可提交的配置模板 |
@@ -91,15 +96,18 @@ npm.cmd run build
 - 前端生产构建存在初始 chunk 大于 500 kB 的警告，当前不影响阶段 1 功能。
 - 当前只实现任务级统一错误响应，尚未添加全局异常处理器。
 - pytest cacheprovider 在当前受控 Windows 临时目录中会阻塞退出，已通过 `backend/pytest.ini` 禁用该非必要缓存插件。
-- `.env.example` 已包含后续数据库和模型配置键，但对应功能尚未实现。
+- `.env.example` 中数据库与上传配置已生效；模型路径和推理设备配置尚未使用。
+- 图片上传成功但任务创建失败时会留下未关联文件；当前没有自动清理孤立文件。
+- 文件存储仍是本地目录，不适用于多实例部署。
+- 当前只支持 JPEG、PNG，不支持 GeoTIFF、地理坐标或大图切片。
 
 ## 下一阶段建议目标
 
-下一阶段建议只实现安全图片上传与文件管理，不提前接入 YOLO：
+下一阶段建议只接入真实 YOLO 目标检测，其他三类任务继续保持 `planned`：
 
-1. 建立 `uploaded_files` 表和任务输入文件关联。
-2. 仅允许 JPEG、PNG，并验证扩展名、MIME、实际解码和文件大小。
-3. 使用 UUID 存储名，数据库只保存相对路径与元数据。
-4. 实现上传、受控读取和图片预览。
-5. 让任务通过文件 ID 引用输入图片。
-6. 完成异常测试和浏览器上传闭环后再提交阶段 3。
+1. 定义统一模型适配器接口和模型注册机制。
+2. 接入小型 YOLO 权重，默认 CPU，自动检测可用设备。
+3. 将任务按 `pending → running → completed/failed` 更新。
+4. 保存结构化检测框、类别和置信度，并生成结果预览图。
+5. 在任务详情展示原图、检测图和检测列表。
+6. 覆盖无目标、模型缺失、推理失败和 CPU 推理测试后再提交阶段 4。
