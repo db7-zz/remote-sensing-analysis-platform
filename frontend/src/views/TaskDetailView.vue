@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { getTask, type AnalysisTask } from '../api/tasks'
@@ -9,6 +9,7 @@ const route = useRoute()
 const loading = ref(false)
 const errorMessage = ref('')
 const task = ref<AnalysisTask | null>(null)
+const detectionResult = computed(() => task.value?.results.find((item) => item.result_type === 'object_detection'))
 
 function formatDate(value: string | null) {
   if (!value) return '—'
@@ -64,6 +65,7 @@ onMounted(loadTask)
           <el-descriptions-item label="更新时间">{{ formatDate(task.updated_at) }}</el-descriptions-item>
           <el-descriptions-item label="开始时间">{{ formatDate(task.started_at) }}</el-descriptions-item>
           <el-descriptions-item label="完成时间">{{ formatDate(task.completed_at) }}</el-descriptions-item>
+          <el-descriptions-item label="推理耗时">{{ task.duration_ms === null ? '—' : `${task.duration_ms} ms` }}</el-descriptions-item>
         </el-descriptions>
 
         <div v-if="task.input_files.length" class="input-files-block">
@@ -79,6 +81,46 @@ onMounted(loadTask)
           </div>
         </div>
 
+        <div v-if="detectionResult" class="input-files-block">
+          <div class="detail-header">
+            <div>
+              <h3>目标检测结果</h3>
+              <small>
+                {{ detectionResult.model_key }} · {{ detectionResult.model_version }} ·
+                {{ detectionResult.device }}
+              </small>
+            </div>
+            <el-tag type="success">real_model</el-tag>
+          </div>
+
+          <figure v-if="detectionResult.output_file" class="result-figure">
+            <img
+              :src="detectionResult.output_file.content_url"
+              :alt="detectionResult.output_file.original_name"
+            />
+          </figure>
+
+          <el-alert
+            v-if="detectionResult.data.detection_count === 0"
+            title="推理已正常完成，未检测到目标"
+            type="info"
+            :closable="false"
+            show-icon
+          />
+          <el-table v-else :data="detectionResult.data.detections" stripe>
+            <el-table-column prop="class_name" label="类别" min-width="120" />
+            <el-table-column label="置信度" width="110">
+              <template #default="scope">{{ (scope.row.confidence * 100).toFixed(1) }}%</template>
+            </el-table-column>
+            <el-table-column label="像素坐标框" min-width="260">
+              <template #default="scope">
+                ({{ scope.row.bbox.x1 }}, {{ scope.row.bbox.y1 }}) →
+                ({{ scope.row.bbox.x2 }}, {{ scope.row.bbox.y2 }})
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+
         <div class="parameters-block">
           <h3>任务参数</h3>
           <pre>{{ JSON.stringify(task.parameters, null, 2) }}</pre>
@@ -89,6 +131,14 @@ onMounted(loadTask)
           title="等待后续推理模块处理"
           description="图片已经安全保存并关联任务。模型接入后，推理服务会把任务从 pending 更新为 running，再进入 completed 或 failed。"
           type="info"
+          :closable="false"
+          show-icon
+        />
+        <el-alert
+          v-if="task.status === 'failed'"
+          :title="task.error_message || '任务执行失败'"
+          :description="task.error_code || undefined"
+          type="error"
           :closable="false"
           show-icon
         />

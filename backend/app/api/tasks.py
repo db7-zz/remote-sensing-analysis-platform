@@ -8,6 +8,7 @@ from app.services.task_service import (
     list_tasks,
     soft_delete_task,
 )
+from app.services.inference_service import execute_object_detection
 from app.utils.responses import error_response, success_response
 
 
@@ -30,7 +31,10 @@ def create_analysis_task():
     except TaskValidationError as exc:
         return error_response(code="VALIDATION_ERROR", message=str(exc), status_code=400)
 
-    return success_response(data=task.to_dict(), message="任务已创建", status_code=201)
+    if task.task_type == "object_detection":
+        task = execute_object_detection(task)
+    message = "目标检测已完成" if task.status == "completed" else "任务已创建"
+    return success_response(data=task.to_dict(), message=message, status_code=201)
 
 
 @tasks_blueprint.get("/tasks")

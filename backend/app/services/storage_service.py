@@ -134,3 +134,36 @@ def resolve_stored_path(uploaded_file: UploadedFile) -> Path:
     if not candidate.is_file():
         raise StoredFileNotFoundError("文件内容不存在")
     return candidate
+
+
+def save_generated_image(image: Image.Image, *, original_name: str) -> UploadedFile:
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    content = buffer.getvalue()
+    stored_name = f"{uuid4()}.png"
+    upload_root = get_upload_root()
+    destination_directory = upload_root / "results"
+    destination_directory.mkdir(parents=True, exist_ok=True)
+    destination = destination_directory / stored_name
+    destination.write_bytes(content)
+
+    uploaded_file = UploadedFile(
+        original_name=clean_original_name(original_name),
+        stored_name=stored_name,
+        relative_path=destination.relative_to(upload_root).as_posix(),
+        content_type="image/png",
+        extension=".png",
+        size_bytes=len(content),
+        width=image.width,
+        height=image.height,
+        sha256=sha256(content).hexdigest(),
+        purpose="result",
+    )
+    try:
+        db.session.add(uploaded_file)
+        db.session.flush()
+    except Exception:
+        db.session.rollback()
+        destination.unlink(missing_ok=True)
+        raise
+    return uploaded_file

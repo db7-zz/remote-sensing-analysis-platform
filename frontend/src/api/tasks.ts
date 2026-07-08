@@ -10,6 +10,29 @@ export type TaskType =
 
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed'
 
+export interface Detection {
+  class_id: number
+  class_name: string
+  confidence: number
+  bbox: { x1: number; y1: number; x2: number; y2: number }
+}
+
+export interface TaskResult {
+  id: string
+  result_type: string
+  implementation: 'real_model' | 'baseline' | 'mock'
+  model_key: string
+  model_version: string | null
+  device: string
+  data: {
+    detection_count: number
+    confidence_threshold: number
+    detections: Detection[]
+  }
+  output_file: UploadedFileMetadata | null
+  created_at: string
+}
+
 export interface AnalysisTask {
   id: string
   name: string
@@ -29,6 +52,7 @@ export interface AnalysisTask {
     position: number
     file: UploadedFileMetadata
   }>
+  results: TaskResult[]
 }
 
 export interface TaskListData {

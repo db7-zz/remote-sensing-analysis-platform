@@ -7,9 +7,9 @@
 
 ## 当前开发状态
 
-- 当前阶段：阶段 3 已完成，准备接入真实 YOLO 目标检测。
-- 已完成：Vue 3 与 Flask 闭环、SQLite 任务管理、安全图片上传、文件元数据、受控图片读取和任务输入关联。
-- 尚未实现：模型推理、检测结果、分割结果、变化检测和地图展示。
+- 当前阶段：阶段 4 已完成，实现真实 YOLO 目标检测闭环。
+- 已完成：Vue 3 与 Flask 闭环、SQLite 任务管理、安全图片上传，以及真实 YOLO11n CPU 推理、结构化检测结果和带框结果图展示。
+- 尚未实现：土地覆盖分类、道路分割、变化检测、MySQL 切换和地图展示。
 
 当前架构、阶段验证与交接信息见：
 
@@ -39,7 +39,7 @@
 - Node.js 24 与 npm 11（前端将在阶段 1 初始化）。
 - Git 2.x。
 
-当前已安装 Flask、SQLAlchemy、数据库迁移、Pillow 图像校验与 Vue 前端依赖；尚未安装 PyTorch 或模型推理依赖。
+后端依赖包含 PyTorch、Ultralytics 与 OpenCV，用于阶段 4 的真实 YOLO 推理。模型权重不进入仓库，获取方式见 `models/README.md`。
 
 ## 本地启动
 
@@ -48,6 +48,10 @@
 ```powershell
 conda env create -f environment.yml
 conda run -n rs-platform python -m pip install -r backend\requirements.txt
+New-Item -ItemType Directory -Path models\weights -Force
+Set-Location models\weights
+conda run -n rs-platform python -c "from ultralytics import YOLO; YOLO('yolo11n.pt')"
+Set-Location ..\..
 Set-Location backend
 conda run -n rs-platform python -m flask --app run.py db upgrade
 Set-Location ..
@@ -76,7 +80,7 @@ npm.cmd run dev
 
 当前支持上传 JPEG、PNG，单张不超过 20 MB。图片会经过扩展名、MIME、真实解码和像素上限校验。
 
-阶段 3 创建的任务仍只会保存为 `pending`，不会伪装成已经执行模型推理。
+目标检测任务会同步执行真实 YOLO 推理，并保存 `real_model` 结果。其他三类任务仍为 `planned`，不会伪装成已实现能力。
 
 ## 安全与仓库规则
 

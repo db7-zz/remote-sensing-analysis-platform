@@ -23,7 +23,7 @@ def create_app(config_object: type[Config] = Config) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from .models import AnalysisTask, TaskInputFile, UploadedFile  # noqa: F401
+    from .models import AnalysisTask, TaskInputFile, TaskResult, UploadedFile  # noqa: F401
 
     app.register_blueprint(files_blueprint, url_prefix="/api/v1")
     app.register_blueprint(health_blueprint, url_prefix="/api/v1")

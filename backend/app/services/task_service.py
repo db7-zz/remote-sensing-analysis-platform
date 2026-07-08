@@ -55,6 +55,8 @@ def create_task(payload: Any) -> AnalysisTask:
         raise TaskValidationError("一个任务最多关联两个输入文件")
     if len(input_file_ids) != len(set(input_file_ids)):
         raise TaskValidationError("input_file_ids 不能包含重复文件")
+    if task_type == "object_detection" and len(input_file_ids) != 1:
+        raise TaskValidationError("目标检测任务必须关联一张输入图片")
 
     files_by_id: dict[str, UploadedFile] = {}
     if input_file_ids:

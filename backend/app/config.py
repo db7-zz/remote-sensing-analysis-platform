@@ -27,3 +27,6 @@ class Config:
     MAX_CONTENT_LENGTH = MAX_UPLOAD_MB * 1024 * 1024
     MAX_IMAGE_PIXELS = int(os.getenv("MAX_IMAGE_PIXELS", "40000000"))
     UPLOAD_ROOT = str(resolve_project_path(os.getenv("UPLOAD_DIR", "uploads")))
+    YOLO_MODEL_PATH = str(resolve_project_path(os.getenv("YOLO_MODEL_PATH", "models/weights/yolo11n.pt")))
+    YOLO_DEVICE = os.getenv("YOLO_DEVICE", "cpu")
+    YOLO_IMAGE_SIZE = int(os.getenv("YOLO_IMAGE_SIZE", "640"))

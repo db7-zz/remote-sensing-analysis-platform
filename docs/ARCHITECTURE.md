@@ -1,6 +1,6 @@
 # 当前系统架构
 
-本文只描述阶段 0 至阶段 3 已经存在并验证的代码，不把后续规划描述为已实现功能。
+本文只描述阶段 0 至阶段 4 已经存在并验证的代码，不把后续规划描述为已实现功能。
 
 ## 组件职责
 
@@ -32,7 +32,7 @@
 - `backend/app/__init__.py` 是应用工厂，负责加载配置、配置 CORS、注册 Blueprint。
 - `backend/app/config.py` 从根目录 `.env` 读取配置，并提供本地开发默认值。
 - 后端默认监听 `127.0.0.1:5000`。
-- 当前 API 包括健康检查、任务管理、图片上传和受控图片读取。
+- 当前 API 包括健康检查、任务管理、图片上传和受控图片读取；目标检测任务创建后会同步进入真实 YOLO 推理。
 - `backend/app/utils/responses.py` 生成统一的成功响应结构。
 
 ### 任务服务与数据层
@@ -43,6 +43,15 @@
 - `backend/app/extensions.py` 管理 SQLAlchemy 与 Flask-Migrate 扩展。
 - SQLite 数据库位于已忽略的 `instance/remote_sensing.db`。
 - `backend/migrations/` 保存可提交的数据库结构演进记录。
+
+### 推理与结果层
+
+- `backend/app/inference/base.py` 定义统一目标检测适配器与检测结果结构。
+- `backend/app/inference/yolo_detector.py` 加载本地 YOLO11n 权重，默认使用 CPU。
+- `backend/app/services/inference_service.py` 负责 `pending → running → completed/failed` 状态流、推理异常和结果持久化。
+- `task_results` 表保存实现类型、模型版本、设备和结构化检测结果。
+- 带框图片保存到被 Git 忽略的 `uploads/results/`，通过受控文件 API 读取。
+- 通用 YOLO 权重用于工程闭环，不代表遥感专项检测精度。
 
 ### 文件存储层
 
@@ -129,4 +138,4 @@ tasks API Blueprint
 
 ## 当前边界
 
-当前架构已经证明 Vue、Flask、SQLite、文件存储和任务输入关联闭环。模型推理、分析结果、地图和部署仍未实现。
+当前架构已经证明 Vue、Flask、SQLite、文件存储、真实 YOLO CPU 推理和检测结果展示闭环。分类、分割、变化检测、地图和部署仍未实现。

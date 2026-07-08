@@ -56,6 +56,13 @@ class AnalysisTask(db.Model):
         order_by="TaskInputFile.position",
         lazy="selectin",
     )
+    results = db.relationship(
+        "TaskResult",
+        back_populates="task",
+        cascade="all, delete-orphan",
+        order_by="TaskResult.created_at",
+        lazy="selectin",
+    )
 
     def to_dict(self) -> dict:
         return {
@@ -73,4 +80,5 @@ class AnalysisTask(db.Model):
             "completed_at": isoformat_utc(self.completed_at),
             "duration_ms": self.duration_ms,
             "input_files": [link.to_dict() for link in self.input_links],
+            "results": [result.to_dict() for result in self.results],
         }

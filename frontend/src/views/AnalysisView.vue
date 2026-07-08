@@ -13,9 +13,11 @@ const router = useRouter()
 const submitting = ref(false)
 const selectedFile = ref<File | null>(null)
 const uploadProgress = ref(0)
+const confidence = ref(0.25)
 const form = reactive<CreateTaskPayload>({
   name: '',
   task_type: 'object_detection',
+  model_key: 'yolo11n',
   parameters: {},
 })
 
@@ -38,9 +40,14 @@ async function submitTask() {
     const task = await createTask({
       ...form,
       name: form.name.trim(),
+      parameters: { confidence: confidence.value },
       input_file_ids: [uploadedFile.id],
     })
-    ElMessage.success('图片已上传，任务记录已创建')
+    if (task.status === 'completed') {
+      ElMessage.success('真实 YOLO 目标检测已完成')
+    } else if (task.status === 'failed') {
+      ElMessage.error(task.error_message || '目标检测失败')
+    }
     await router.push(`/tasks/${task.id}`)
   } catch (error) {
     const message = axios.isAxiosError(error)
@@ -65,9 +72,9 @@ async function submitTask() {
 
     <el-alert
       class="stage-notice"
-      title="阶段 3 支持安全图片上传"
-      description="图片会经过格式、MIME、大小和真实解码校验，并通过文件 ID 关联任务。当前仍不会调用模型，任务保持 pending。"
-      type="info"
+      title="阶段 4：真实 YOLO 目标检测"
+      description="当前仅目标检测可执行；使用通用 YOLO11n 权重验证工程闭环，不代表遥感专项检测精度。其他分析类型仍为 planned。"
+      type="success"
       :closable="false"
       show-icon
     />
@@ -96,14 +103,24 @@ async function submitTask() {
               :key="option.value"
               :label="option.label"
               :value="option.value"
+              :disabled="option.value !== 'object_detection'"
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="模型标识（可选）">
-          <el-input v-model="form.model_key" placeholder="尚未接入模型，可暂时留空" />
+        <el-form-item label="模型">
+          <el-input v-model="form.model_key" disabled />
+        </el-form-item>
+        <el-form-item label="置信度阈值">
+          <el-slider
+            v-model="confidence"
+            :min="0.05"
+            :max="0.95"
+            :step="0.05"
+            show-input
+          />
         </el-form-item>
         <el-button type="primary" native-type="submit" :loading="submitting">
-          上传图片并创建任务
+          {{ submitting ? '上传并执行真实推理…' : '上传图片并开始目标检测' }}
         </el-button>
       </el-form>
     </div>

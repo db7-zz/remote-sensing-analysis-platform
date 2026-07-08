@@ -2,11 +2,11 @@
 
 ## Git 状态
 
-- 当前已提交基线：`529e5a6 feat: add SQLite-backed analysis task management`
-- 阶段 3：已实现并验证，尚未提交
+- 当前阶段基线：阶段 4 提交，具体哈希见 `git log -1`
+- 阶段 4：已实现、通过开发侧验证和用户本地验收
 - 当前分支：`main`
 - 远程跟踪分支：`origin/main`
-- 当前工作区包含安全上传、文件关联、迁移、测试、页面和文档改动。
+- 阶段 4 提交包含 YOLO 适配器、推理服务、结果持久化、迁移、测试、页面和文档改动。
 
 ## 当前运行命令
 
@@ -84,6 +84,10 @@ npm.cmd run build
 | `backend/app/models/analysis_task.py` | 任务 ORM 模型 |
 | `backend/app/services/task_service.py` | 任务业务规则与状态机 |
 | `backend/app/services/storage_service.py` | 图片验证、存储和安全路径解析 |
+| `backend/app/inference/yolo_detector.py` | 真实 YOLO11n 目标检测适配器 |
+| `backend/app/services/inference_service.py` | 推理状态流、异常和结果持久化 |
+| `backend/app/models/task_result.py` | 结构化推理结果 ORM 模型 |
+| `models/README.md` | 权重获取、来源和能力边界 |
 | `backend/app/models/uploaded_file.py` | 文件元数据与任务输入关联模型 |
 | `backend/migrations/` | 数据库迁移历史 |
 | `backend/app/utils/responses.py` | 统一成功响应 |
@@ -101,13 +105,9 @@ npm.cmd run build
 - 文件存储仍是本地目录，不适用于多实例部署。
 - 当前只支持 JPEG、PNG，不支持 GeoTIFF、地理坐标或大图切片。
 
-## 下一阶段建议目标
+## 当前下一步
 
-下一阶段建议只接入真实 YOLO 目标检测，其他三类任务继续保持 `planned`：
-
-1. 定义统一模型适配器接口和模型注册机制。
-2. 接入小型 YOLO 权重，默认 CPU，自动检测可用设备。
-3. 将任务按 `pending → running → completed/failed` 更新。
-4. 保存结构化检测框、类别和置信度，并生成结果预览图。
-5. 在任务详情展示原图、检测图和检测列表。
-6. 覆盖无目标、模型缺失、推理失败和 CPU 推理测试后再提交阶段 4。
+1. 阶段 4 已完成并通过用户本地验收。
+2. 下一阶段按 `docs/ROADMAP.md` 进入阶段 5：DINOv2 特征土地覆盖分类。
+3. 开始阶段 5 前仍需先教学并由用户确认具体实施范围。
+4. 道路分割和变化检测继续保持 `planned`。
